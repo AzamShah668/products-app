@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    # Use hardcoded values if you aren't using envsubst in Jenkins, 
+    # or keep variables if you plan to provide an .env file on vm2.
+    image: ${DOCKER_USER}/products-backend:v${TAG}
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=mysecretpassword
+      - DB_NAME=proddb
+    depends_on:
+      - db
+
+  frontend:
+    image: ${DOCKER_USER}/products-frontend:v${TAG}
+    restart: always
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=proddb
+    volumes:
+      # FIX: Since you don't have a ./db/ folder, we'll use a named volume 
+      # or you must create the folder. For staging, a named volume is safer.
+      - pgdata_staging:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata_staging:
