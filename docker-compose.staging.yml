@@ -22,6 +22,11 @@ services:
     restart: always
     ports:
       - "8081:80"
+    volumes:
+      # Map your local 'mens' folder to the path Nginx expects for 'men'
+      - ./frontend/mens:/usr/share/nginx/html/images/products/men
+      # Map your local 'women' folder to the path Nginx expects for 'women'
+      - ./frontend/women:/usr/share/nginx/html/images/products/women
     depends_on:
       - backend
 
