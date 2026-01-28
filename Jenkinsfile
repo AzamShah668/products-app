@@ -86,7 +86,7 @@ pipeline {
 
         stage('Approval Gate') {
             steps {
-                input message: 'Staging looks good. Deploy to Production?', ok: 'Promote!'
+                input message: 'Staging  looks good. Deploy to Production?', ok: 'Promote!'
             }
         }
 
