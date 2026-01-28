@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: ${DOCKER_USER}/voter-backend:v${TAG}
+    image: ${DOCKER_USER}/products-backend:v${TAG}
     restart: always
     ports:
       - "5000:5000"
@@ -14,10 +14,16 @@ services:
       - db
 
   frontend:
-    image: ${DOCKER_USER}/voter-frontend:v${TAG}
+    image: ${DOCKER_USER}/products-frontend:v${TAG}
     restart: always
     ports:
       - "80:80"    # Standard web port for production
+    volumes:
+      # The "Bridge": Maps your host image folders to the container
+      - /home/vboxuser/products-app/frontend/mens:/usr/share/nginx/html/images/products/men
+      - /home/vboxuser/products-app/frontend/women:/usr/share/nginx/html/images/products/women
+      # Ensures Nginx uses your custom routing rules
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - backend
 
