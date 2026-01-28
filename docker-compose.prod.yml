@@ -5,11 +5,11 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - DATABASE_URL=postgresql://postgres:mysecretpassword@db:5432/proddb
+      - DATABASE_URL=postgresql://prodadmin:prod_secure_pass@db:5432/products_production
       - DB_HOST=db
-      - DB_USER=postgres
-      - DB_PASSWORD=mysecretpassword
-      - DB_NAME=proddb
+      - DB_USER=prodadmin
+      - DB_PASSWORD=prod_secure_pass
+      - DB_NAME=products_production
     depends_on:
       - db
 
@@ -17,13 +17,12 @@ services:
     image: ${DOCKER_USER}/products-frontend:v${TAG}
     restart: always
     ports:
-      - "8081:80"
+      - "80:80"
     volumes:
-      # Adjusted paths for VM 105
+      # Keep these! They map the physical images from the VM into the app
       - /home/vboxuser/products-app/frontend/mens:/usr/share/nginx/html/images/products/men
       - /home/vboxuser/products-app/frontend/women:/usr/share/nginx/html/images/products/women
-      # Ensure nginx.conf exists in this directory on VM 105
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    # Look: No nginx.conf volume here anymore. It's inside the image!
     depends_on:
       - backend
 
@@ -31,13 +30,13 @@ services:
     image: postgres:15
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=mysecretpassword
-      - POSTGRES_DB=proddb
+      - POSTGRES_USER=prodadmin
+      - POSTGRES_PASSWORD=prod_secure_pass
+      - POSTGRES_DB=products_production
     volumes:
-      - pgdata_staging:/var/lib/postgresql/data
+      - pgdata_prod:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
 volumes:
-  pgdata_staging:
+  pgdata_prod:
