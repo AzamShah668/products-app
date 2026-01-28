@@ -110,7 +110,7 @@ pipeline {
         }
     }
 
-    post {
+   /* post {
         success {
             echo "Successfully deployed!"
             // Only clean up the specific images for THIS build number to save space
@@ -123,5 +123,5 @@ pipeline {
             // from this specific run, not your global cache.
             cleanWs()
         }
-    }
+    } */
 }
