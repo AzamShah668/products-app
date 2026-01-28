@@ -1,6 +1,6 @@
 /**
  * Image utility functions for generating product images
- * Based on product data, generates appropriate placeholder images
+ * Modified to prioritize local images from Docker volumes
  */
 
 export interface ImageOptions {
@@ -12,8 +12,7 @@ export interface ImageOptions {
 }
 
 /**
- * Generates a placeholder image URL based on product data
- * Uses placeholder.com service with product-specific parameters
+ * Generates a fallback placeholder image URL using via.placeholder.com
  */
 export const generateProductImage = (
   productName: string,
@@ -23,8 +22,7 @@ export const generateProductImage = (
 ): string => {
   const width = options.width || 600;
   const height = options.height || 600;
-  
-  // Generate colors based on category
+
   const categoryColors: Record<string, { bg: string; text: string }> = {
     men: { bg: '4A90E2', text: 'FFFFFF' },
     women: { bg: 'E91E63', text: 'FFFFFF' },
@@ -34,30 +32,31 @@ export const generateProductImage = (
   const colors = categoryColors[category] || categoryColors.general;
   const bgColor = options.bgColor || colors.bg;
   const textColor = options.textColor || colors.text;
-
-  // Create a short text from product name (max 20 chars)
   const text = options.text || productName.substring(0, 20).replace(/\s+/g, '+');
 
-  // Use placeholder.com service
   return `https://via.placeholder.com/${width}x${height}/${bgColor}/${textColor}?text=${encodeURIComponent(text)}`;
 };
 
 /**
- * Generates a more sophisticated placeholder using picsum.photos with seed
- * This provides consistent images for the same product
+ * Generates a local path to the images stored in your Docker volumes
+ * Based on the folder structure: /images/products/[men|women]/[prefix]-[id].jpg
  */
 export const generateSeededImage = (
   productId: number,
-  width: number = 600,
-  height: number = 600
+  category: string = 'men'
 ): string => {
-  // Use product ID as seed for consistent images
-  return `https://picsum.photos/seed/product-${productId}/${width}/${height}`;
+  // Determine folder and filename prefix based on category
+  const isWomen = category.toLowerCase() === 'women';
+  const folder = isWomen ? 'women' : 'men';
+  const prefix = isWomen ? 'women-shirt' : 'mens-shirt';
+  
+  // Returns path like: /images/products/men/mens-shirt-1.jpg
+  return `/images/products/${folder}/${prefix}-${productId}.jpg`;
 };
 
 /**
  * Gets the best available image URL for a product
- * Falls back to generated placeholder if no image_url is provided
+ * Prioritizes local volume images over external placeholders
  */
 export const getProductImageUrl = (
   imageUrl: string | null | undefined,
@@ -65,16 +64,17 @@ export const getProductImageUrl = (
   category: string,
   productId?: number
 ): string => {
-  if (imageUrl && imageUrl.trim() !== '') {
+  // 1. If a valid external URL is provided in the DB (that isn't a placeholder), use it
+  if (imageUrl && imageUrl.trim() !== '' && !imageUrl.includes('picsum.photos') && !imageUrl.includes('placeholder')) {
     return imageUrl;
   }
-  
+
+  // 2. Use our local Docker volume images if a productId is available
   if (productId) {
-    // Use seeded image for consistency
-    return generateSeededImage(productId);
+    return generateSeededImage(productId, category);
   }
-  
-  // Fallback to placeholder with product name
+
+  // 3. Absolute fallback to a generated placeholder
   return generateProductImage(productName, category, productId);
 };
 
@@ -86,6 +86,7 @@ export const isValidImageUrl = (url: string): boolean => {
     const urlObj = new URL(url);
     return ['http:', 'https:'].includes(urlObj.protocol);
   } catch {
-    return false;
+    // If it's a local path like /images/..., it's valid for our app
+    return url.startsWith('/');
   }
 };
