@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    image: ${DOCKER_USER}/voter-backend:v${TAG}
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=prodsecretpassword
+    depends_on:
+      - db
+
+  frontend:
+    image: ${DOCKER_USER}/voter-frontend:v${TAG}
+    restart: always
+    ports:
+      - "80:80"    # Standard web port for production
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=prodsecretpassword
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata_prod:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata_prod:

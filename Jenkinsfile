@@ -111,11 +111,17 @@ pipeline {
     }
 
     post {
-        always {
-            sh 'docker system prune -f'
+        success {
+            echo "Successfully deployed!"
+            // Only clean up the specific images for THIS build number to save space
+            // but keep the base python cache!
+            sh "docker rmi ${DOCKER_USER}/products-backend:v${TAG} || true"
+            sh "docker rmi ${DOCKER_USER}/products-frontend:v${TAG} || true"
         }
-        failure {
-            echo "Build failed - check file paths or SSH connectivity"
+        cleanup {
+            // This is safer than 'prune'. It only removes containers 
+            // from this specific run, not your global cache.
+            cleanWs()
         }
     }
 }
