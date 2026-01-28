@@ -36,7 +36,7 @@ pipeline {
                         sh 'echo $PASS | docker login -u $USER --password-stdin'
                         sh "docker build -t ${DOCKER_USER}/products-frontend:v${TAG} ./frontend"
                         sh "docker push ${DOCKER_USER}/products-frontend:v${TAG}"
-                        sh "docker build -t ${DOCKER_USER}/products-backend:v${TAG} ./backend"
+                        sh "docker build -f Dockerfile.backend -t ${DOCKER_USER}/products-backend:v${TAG} ./app"
                         sh "docker push ${DOCKER_USER}/products-backend:v${TAG}"
                     }
                 }
