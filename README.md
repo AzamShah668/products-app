@@ -1,254 +1,140 @@
-# 🛍️ Products Management System
+# 🛍️ AXM Enterprises — Products Management Platform
 
-A full-stack web application for managing products with user authentication. Built with FastAPI backend and React frontend.
+A production-deployed, full-stack product catalog with JWT authentication. **FastAPI** backend, **React + TypeScript** frontend, deployed live across **Vercel** (frontend) and **Render** (backend).
 
-## 📦 What's Included
+<p align="left">
+  <img alt="Backend" src="https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi&logoColor=white">
+  <img alt="Frontend" src="https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB?logo=react&logoColor=black">
+  <img alt="Language" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white">
+  <img alt="Auth" src="https://img.shields.io/badge/Auth-JWT-000000?logo=jsonwebtokens&logoColor=white">
+  <img alt="Deploy" src="https://img.shields.io/badge/Deploy-Vercel%20%2B%20Render-000000?logo=vercel&logoColor=white">
+</p>
 
-### Backend (FastAPI + Python)
-- User registration and authentication with JWT tokens
-- CRUD operations for products
-- SQLite database with SQLModel
-- Password hashing with bcrypt
-- CORS support
-- Automatic API documentation
+## 🔴 Live Demo
 
-### Frontend (React + TypeScript)
-- Modern React application with TypeScript
-- User authentication (login/register)
-- Product management interface
-- Responsive design with Tailwind CSS
-- Protected routes and authentication state
-- Production-ready build configuration
+| | URL |
+|---|---|
+| **App (frontend)** | **https://products-app-rouge.vercel.app** |
+| **API (backend)** | https://products-app-4odu.onrender.com |
+| **Interactive API docs** | https://products-app-4odu.onrender.com/docs |
 
-## 🚀 Quick Start
+**Demo login** — username `demo` · password `demo12345`
 
-### Using Docker (Recommended)
+> ⏱️ The backend runs on a free Render instance that **sleeps after ~15 min idle**, so the first request after a nap can take ~50s to wake. Subsequent requests are fast.
 
-1. **Clone the repository and navigate to the project**:
-   ```bash
-   cd your-project-directory
-   ```
+## ✨ What it does
 
-2. **Start both services**:
-   ```bash
-   docker-compose up --build
-   ```
+A storefront-style catalog where visitors can browse products, register an account, sign in, and (when authenticated) manage the catalog. It demonstrates a clean, layered full-stack architecture with secure auth — built to be read, deployed, and extended.
 
-3. **Access the application**:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - API Docs: http://localhost:8000/docs
+### Features
+- 🔐 **JWT authentication** — register, login, protected routes, token-based session
+- 📦 **Product catalog** — list, view, create, update, delete (CRUD)
+- 🌱 **Self-seeding catalog** — sample products auto-load on startup (great for ephemeral hosts)
+- 🎨 **Polished UI** — React + TypeScript + Tailwind, responsive, animated
+- 📚 **Auto-generated API docs** — Swagger UI at `/docs`
+- 🐳 **Containerised** — Docker Compose for one-command local spin-up
+- ☁️ **Live deployment** — Vercel + Render with build-time API wiring and CORS
 
-### Manual Setup
+## 🧱 Tech stack
 
-#### Backend Setup
-```bash
-# Install dependencies
-pip install -r requirements.txt
+| Layer | Technologies |
+|-------|--------------|
+| **Frontend** | React, TypeScript, Vite, Tailwind CSS, React Router |
+| **Backend** | FastAPI, Uvicorn, SQLModel, Pydantic v2, pydantic-settings |
+| **Auth** | JWT (python-jose), password hashing (passlib) |
+| **Database** | SQLite (default) · Postgres-ready (psycopg2) |
+| **Infra** | Docker, Docker Compose, Jenkins (CI), Vercel, Render |
 
-# Create environment file
-cp .env.example .env
+## 🏗️ Architecture
 
-# Run the backend
-uvicorn app.main:app --reload
+```
+   GitHub: AzamShah668/products-app  (one repo, two deploy targets)
+     ├── frontend/  ──build──►  Vercel (static CDN)
+     └── app/       ──build──►  Render (FastAPI server + SQLite)
+
+   Browser ──1. load static site──► Vercel (frontend)
+           ──2. API calls (JWT, CORS)──► Render (backend) ──► SQLite
 ```
 
-#### Frontend Setup
+The browser talks to the backend **directly** — Vercel only serves the static frontend, which is wired to the API via the build-time `VITE_API_URL`. Full details, data flow, and design decisions: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
+
+## 📁 Project structure
+
+```
+products-app/
+├── app/                      # FastAPI backend
+│   ├── api/                  #   route handlers (auth, products)
+│   ├── core/                 #   config + security (JWT, hashing)
+│   ├── db/                   #   engine, session, table creation
+│   ├── models/               #   SQLModel tables (User, Product)
+│   ├── schemas/              #   Pydantic request/response models
+│   └── main.py               #   app factory, CORS, lifespan + seeding
+├── frontend/                 # React + Vite app
+│   └── src/                  #   api client, components, contexts, pages
+├── docs/                     # 📚 architecture, sprint log, roadmap
+├── docker-compose.yml        # local orchestration
+├── Dockerfile.backend        # backend image
+├── Jenkinsfile               # CI pipeline
+├── DEPLOYMENT.md             # deployment guide
+└── requirements.txt
+```
+
+## 🚀 Getting started
+
+### Option A — Docker (recommended)
 ```bash
-# Navigate to frontend directory
+cp .env.example .env                 # backend config
+cp frontend/.env.example frontend/.env
+docker-compose up --build
+# Frontend → http://localhost:3000   API → http://localhost:8000/docs
+```
+
+### Option B — Manual
+```bash
+# Backend
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload        # http://localhost:8000
+
+# Frontend (new terminal)
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start development server
-npm run dev
+cp .env.example .env
+npm run dev                          # http://localhost:5173
 ```
 
 ## 🔧 Configuration
 
-### Backend Environment Variables
-Create a `.env` file in the root directory:
-```env
-DATABASE_URL=sqlite:///./products.db
-SECRET_KEY=your-super-secret-key-change-this-in-production
-ACCESS_TOKEN_EXPIRE_MINUTES=120
-```
+Backend (`.env`) and frontend (`frontend/.env`) are documented in **[.env.example](.env.example)** and **[frontend/.env.example](frontend/.env.example)**. Generate a strong secret with `openssl rand -hex 32`.
 
-### Frontend Environment Variables
-Create a `.env` file in the `frontend/` directory:
-```env
-VITE_API_URL=http://localhost:8000
-```
+## 🔐 API reference
 
-## 📁 Project Structure
+| Method | Endpoint | Auth | Description |
+|--------|----------|:----:|-------------|
+| `POST` | `/auth/register` | — | Create a user |
+| `POST` | `/auth/login` | — | Get a JWT access token |
+| `GET`  | `/auth/me` | ✅ | Current user |
+| `GET`  | `/products/` | — | List products |
+| `GET`  | `/products/{id}` | — | Get one product |
+| `POST` | `/products/` | ✅ | Create product |
+| `PUT`  | `/products/{id}` | ✅ | Update product |
+| `DELETE` | `/products/{id}` | ✅ | Delete product |
+| `GET`  | `/health` | — | Health check |
 
-```
-├── app/                    # Backend application
-│   ├── api/               # API endpoints
-│   ├── core/              # Core functionality
-│   ├── db/                # Database configuration
-│   ├── models/            # Database models
-│   ├── schemas/           # Pydantic schemas
-│   └── main.py           # FastAPI application
-├── frontend/              # Frontend application
-│   ├── src/
-│   │   ├── api/          # API client
-│   │   ├── components/   # React components
-│   │   ├── contexts/     # React contexts
-│   │   └── ...
-│   └── package.json
-├── docker-compose.yml     # Docker orchestration
-├── Dockerfile.backend     # Backend Docker config
-├── DEPLOYMENT.md         # Production deployment guide
-└── README.md            # This file
-```
+Full interactive docs at **`/docs`**.
 
-## 🔐 API Endpoints
+## ☁️ Deployment
 
-### Authentication
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login and get access token
-- `GET /auth/me` - Get current user info (requires authentication)
+The live stack: **frontend → Vercel** (root dir `frontend/`, `VITE_API_URL` → backend) and **backend → Render** (`uvicorn app.main:app`, Python pinned to 3.11.9). Step-by-step guide: **[DEPLOYMENT.md](DEPLOYMENT.md)**. The exact production rollout is logged in **[docs/SPRINT-LOG.md](docs/SPRINT-LOG.md)** (Sprint 2).
 
-### Products
-- `GET /products/` - List all products
-- `GET /products/{id}` - Get specific product
-- `POST /products/` - Create new product (requires authentication)
-- `PUT /products/{id}` - Update product (requires authentication)
-- `DELETE /products/{id}` - Delete product (requires authentication)
+## 🗺️ Roadmap
 
-## 🚀 Deployment
+This is a working demo with a clear path to production hardening (managed DB, CI/CD, tests, observability, refresh tokens, image storage, RBAC). See **[docs/ROADMAP.md](docs/ROADMAP.md)**.
 
-For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+## 📓 Project history
 
-### Quick Deploy Options
-
-#### Backend
-- **Railway**: Connect GitHub repo, automatic deployment
-- **Render**: Python web service with build commands
-- **Heroku**: Traditional PaaS deployment
-
-#### Frontend
-- **Vercel**: Connect GitHub repo, automatic deployment
-- **Netlify**: Static site hosting with build configuration
-- **GitHub Pages**: Free hosting for open source projects
-
-## 🧪 Testing
-
-### Backend Tests
-```bash
-# Install test dependencies
-pip install pytest httpx
-
-# Run tests
-pytest
-```
-
-### Frontend Tests
-```bash
-cd frontend
-npm test
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+Development is tracked as sprints in **[docs/SPRINT-LOG.md](docs/SPRINT-LOG.md)** — Sprint 1 (build the platform) and Sprint 2 (ship it live).
 
 ## 📄 License
 
-MIT License - see LICENSE file for details.
-
-## Installation
-
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-2. Create a `.env` file with your configuration:
-```env
-DATABASE_URL=sqlite:///./products.db
-SECRET_KEY=your-super-secret-key-change-this-in-production
-ACCESS_TOKEN_EXPIRE_MINUTES=120
-```
-
-## Running the Application
-
-Start the development server:
-```bash
-uvicorn app.main:app --reload
-```
-
-The API will be available at `http://localhost:8000`
-
-## API Documentation
-
-Once running, visit `http://localhost:8000/docs` for interactive API documentation.
-
-## API Endpoints
-
-### Authentication
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login and get access token
-- `GET /auth/me` - Get current user info (requires authentication)
-
-### Products
-- `GET /products/` - List all products
-- `GET /products/{id}` - Get specific product
-- `POST /products/` - Create new product (requires authentication)
-- `PUT /products/{id}` - Update product (requires authentication)
-- `DELETE /products/{id}` - Delete product (requires authentication)
-
-## Project Structure
-
-```
-app/
-├── api/
-│   ├── auth.py          # Authentication endpoints
-│   ├── products.py      # Product CRUD endpoints
-│   ├── deps.py          # Dependencies (empty)
-│   └── security.py      # Security utilities
-├── core/
-│   ├── auth.py          # Authentication logic (empty)
-│   ├── config.py        # Configuration settings
-│   └── security.py      # Password hashing and JWT
-├── db/
-│   ├── base.py          # Database initialization
-│   └── session.py       # Database session management
-├── models.py/
-│   ├── product.py       # Product model
-│   └── user.py          # User model
-├── schemas/
-│   ├── product.py       # Product schemas
-│   └── user.py          # User schemas
-└── main.py              # FastAPI application
-```
-
-## What You Learned
-
-This backend implements:
-1. **FastAPI Application Setup** - Creating the main app with CORS and routers
-2. **Database Models** - Using SQLModel for type-safe database models
-3. **Authentication** - JWT-based auth with password hashing
-4. **API Endpoints** - RESTful endpoints for users and products
-5. **Dependency Injection** - Using FastAPI's dependency system
-6. **Configuration Management** - Environment-based configuration
-7. **CRUD Operations** - Complete Create, Read, Update, Delete functionality
-
-## Next Steps
-
-To extend this backend, you could:
-- Add product categories
-- Implement search and filtering
-- Add user roles and permissions
-- Add product images
-- Implement rate limiting
-- Add comprehensive error handling
-- Write tests
-- Add logging
-- Use a production database (PostgreSQL/MySQL)# products-app
+MIT — see `LICENSE`.
